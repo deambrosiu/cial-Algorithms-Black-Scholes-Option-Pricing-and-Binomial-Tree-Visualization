@@ -1,0 +1,32 @@
+import numpy as np
+import scipy.stats as norm
+import matplotlib.pyplot as plt
+
+import numpy as np
+from scipy.stats import norm
+
+def BlackScholes():
+    Option_type = input("Type of option (call/put): ").lower()
+    S = float(input("Enter the current stock price: "))
+    K = float(input("Enter the Strike price: "))
+    sigma = float(input("Enter the volatility (sigma): "))
+    T = float(input("Enter the time to expiration (in months): ")) / 12
+    R = float(input("Enter the risk-free interest rate: "))
+    
+    d1 = (np.log(S / K) + (R + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    
+    try:
+        if Option_type == "call":
+            price = S * norm.cdf(d1) - K * np.exp(-R * T) * norm.cdf(d2)
+        elif Option_type == "put":
+            price = K * np.exp(-R * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+        return price, d1, d2
+    except:
+        print("Please review if all data is correct!")
+
+result, d1, d2 = BlackScholes()
+if result is not None:
+    print("Option Price:", round(result, 2))
+    print("d1:", d1)
+    print("d2:", d2)
