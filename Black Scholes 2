@@ -1,0 +1,55 @@
+import numpy as np
+from scipy.stats import norm
+
+def blackScholes(r, S, K, T, sigma, option_type):
+    """
+    Calculate the Black-Scholes price of a call or put option.
+    
+    Parameters:
+    r (float): Risk-free interest rate.
+    S (float): Current stock price.
+    K (float): Strike price.
+    T (float): Time to expiration in years.
+    sigma (float): Volatility of the underlying stock.
+    option_type (str): Type of option, either 'c' for Call or 'p' for Put.
+    
+    Returns:
+    tuple: Option price and corresponding d1, d2 values.
+    """
+    d1 = (np.log(S/K) + (r + sigma**2/2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    
+    if option_type == "c":
+        price = S * norm.cdf(d1, 0, 1) - K * np.exp(-r * T) * norm.cdf(d2, 0, 1)
+        cdf_d1 = norm.cdf(d1, 0, 1)
+        cdf_d2 = norm.cdf(d2, 0, 1)
+        return price, d1, d2, cdf_d1, cdf_d2
+    elif option_type == "p":
+        price = K * np.exp(-r * T) * norm.cdf(-d2, 0, 1) - S * norm.cdf(-d1, 0, 1)
+        cdf_minus_d1 = norm.cdf(-d1, 0, 1)
+        cdf_minus_d2 = norm.cdf(-d2, 0, 1)
+        return price, d1, d2, cdf_minus_d1, cdf_minus_d2
+    else:
+        raise ValueError("Please confirm option type, either 'c' for Call or 'p' for Put!")
+
+r = 0.05
+S = 69
+K = 70
+T = 6 #months to expire
+T = T/12
+sigma = 0.35
+
+option_type = input("c or p: ").strip().lower()
+try:
+    option_price, d1, d2, cdf_d1, cdf_d2 = blackScholes(r, S, K, T, sigma, option_type)
+    print("Option Price:", round(option_price, 2))
+    print("d1:", d1)
+    print("d2:", d2)
+    if option_type == "c":
+        print("Norm(d1):", cdf_d1)
+        print("Norm(d2):", cdf_d2)
+    else:
+        print("Norm(-d1):", cdf_d1)
+        print("Norm(-d2):", cdf_d2)
+except ValueError as e:
+    print(e)
