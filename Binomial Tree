@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def generate_binomial_tree(S, T, n, u, d):
+    tree = np.zeros((n+1, n+1))
+    for i in range(n+1):
+        for j in range(i+1):
+            tree[j, i] = S * (u ** (i - j)) * (d ** j)
+    return tree
+
+def plot_binomial_tree(tree, option_prices, stock_prices):
+    n = tree.shape[1] - 1
+    plt.figure(figsize=(10, 6))
+    plt.title("Binomial Tree")
+    for i in range(n+1):
+        for j in range(i+1):
+            option_price = option_prices[j, i]
+            stock_price = stock_prices[j, i]
+            if option_price == 0:
+                plt.plot(i, tree[j, i], 'ro')
+            else:
+                plt.plot(i, tree[j, i], 'bo')
+            plt.text(i, tree[j, i], f'Stock: {stock_price:.2f}\nOption: {option_price:.2f}', ha='center', va='bottom', style='italic')
+            if i < n:
+                plt.plot([i, i+1], [tree[j, i], tree[j, i+1]], 'b-')
+                plt.plot([i, i+1], [tree[j, i], tree[j+1, i+1]], 'b-')
+    plt.xlabel("Time Step")
+    plt.ylabel("Stock Price")
+    plt.grid()
+    plt.show()
+
+option_choice = input("Choose an option type (Call or Put): ").lower()
+
+S = 20
+K = 20
+T = 12
+sigma = 0.2
+r = 0.03
+n = 2
+T = T / n
+u = np.exp(sigma * np.sqrt(T/12))
+d = 1 / u
+p = (np.exp(r * T/12) - d) / (u - d)
+
+stock_prices = generate_binomial_tree(S, T, n, u, d)
+option_prices = np.zeros_like(stock_prices)
+
+for j in range(n+1):
+    if option_choice == "call":
+        option_prices[j, n] = max(stock_prices[j, n] - K, 0)
+    else:
+        option_prices[j, n] = max(K - stock_prices[j, n], 0)
+
+for i in range(n-1, -1, -1):
+    for j in range(i+1):
+        option_prices[j, i] = np.exp(-r * T/12) * ((p * option_prices[j, i+1]) + ((1 - p) * option_prices[j+1, i+1]))
+
+plot_binomial_tree(stock_prices, option_prices, stock_prices)
+
+print("u:", u)
+print("d:", d)
+print("p:", p)
+print("Stock Prices:\n", stock_prices)
+print("Option Prices:\n", option_prices)
